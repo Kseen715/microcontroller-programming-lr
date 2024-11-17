@@ -1,0 +1,73 @@
+MAIN                                                                                                          PAGE 1
+
+                       1    $MOD51
+                       2    
+0000 020020            3            jmp start       
+                       4    
+000B                   5    org 0bh                                                 ; timer overflow interrupt
+000B C28C              6            clr tcon.4                                      ; forbid count of timer T/C0
+000D 32                7            reti                                            ; return from interrupt
+                       8    
+0020                   9    org 20h
+                      10    
+0020                  11    start:
+0020 C3               12            clr c                                           ; clear counter
+0021 758901           13            mov tmod,#01h                           ; set 1st mode for timer T/C0
+0024 D2AF             14            setb ie.7                                       ; main interrept allow
+0026 D2A9             15            setb ie.1                                       ; timer OF interrupt allow
+                      16    
+0028 75A000           17            mov p2,#0h                                      ; set full port p2 to LOW
+                      18            
+002B                  19    main_loop:      
+002B 7801             20            mov r0,#1                                       ; 1s timer (S loop) #20
+002D 7901             21            mov r1,#1                                       ; 0,5s timer (K loop) #10
+002F 7B05             22            mov r3,#5                                       ; 120s timer (T loop) #80
+                      23    
+0031                  24    twomin_t:
+                      25            
+0031 E8               26            mov a,r0
+0032 FC               27            mov r4,a
+0033 75A020           28            mov p2,#00100000b
+0036                  29    second_t:
+0036 758AB0           30            mov TL0, #low(not(50000-1)) ; 50 ms (50000)
+0039 758C3C           31            mov TH0, #high(not(50000-1));
+003C D28C             32            setb tcon.4                                     ; turn on timer T/C0
+                      33    
+003E                  34    wait_1:
+003E 308DFD           35            jnb tcon.5, wait_1                      ; loop until oveflow
+0041 DCF3             36            djnz r4,second_t
+                      37    
+0043 E9               38            mov a,r1
+0044 FC               39            mov r4,a
+0045 53A000           40            anl p2,#0h
+0048                  41    halfsec_t:
+0048 758AB0           42            mov TL0, #low(not(50000-1)) ; 50 ms (50000)
+004B 758C3C           43            mov TH0, #high(not(50000-1));
+004E D28C             44            setb tcon.4                                     ; turn on timer T/C0
+                      45    
+0050                  46    wait_2:
+0050 308DFD           47            jnb tcon.5, wait_2                      ; loop until oveflow
+0053 DCF3             48            djnz r4,halfsec_t
+                      49    
+0055 DBDA             50            djnz r3,twomin_t
+                      51            
+0057 80D2             52            jmp main_loop                           ; main loop
+                      53    
+                      54    END
+
+VERSION 1.2k ASSEMBLY COMPLETE, 0 ERRORS FOUND
+MAIN                                                                                                          PAGE 2
+
+HALFSEC_T. . . . . . . . . . . .  C ADDR  0048H  
+IE . . . . . . . . . . . . . . .  D ADDR  00A8H  PREDEFINED  
+MAIN_LOOP. . . . . . . . . . . .  C ADDR  002BH  
+P2 . . . . . . . . . . . . . . .  D ADDR  00A0H  PREDEFINED  
+SECOND_T . . . . . . . . . . . .  C ADDR  0036H  
+START. . . . . . . . . . . . . .  C ADDR  0020H  
+TCON . . . . . . . . . . . . . .  D ADDR  0088H  PREDEFINED  
+TH0. . . . . . . . . . . . . . .  D ADDR  008CH  PREDEFINED  
+TL0. . . . . . . . . . . . . . .  D ADDR  008AH  PREDEFINED  
+TMOD . . . . . . . . . . . . . .  D ADDR  0089H  PREDEFINED  
+TWOMIN_T . . . . . . . . . . . .  C ADDR  0031H  
+WAIT_1 . . . . . . . . . . . . .  C ADDR  003EH  
+WAIT_2 . . . . . . . . . . . . .  C ADDR  0050H  
