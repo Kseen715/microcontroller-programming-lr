@@ -1,1 +1,6 @@
 .vscode/
+build/
+*.o
+*.d
+*(Security copy)
+*.zip
